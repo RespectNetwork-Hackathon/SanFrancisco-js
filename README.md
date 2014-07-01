@@ -1,4 +1,6 @@
 SanFrancisco-js
 ===============
 
-Code for San Francisco Hackathon (js)
+Code for Respect Network San Francisco Hackathon (js)
+
+http://piratepad.nl/rn-hackathon-sf
