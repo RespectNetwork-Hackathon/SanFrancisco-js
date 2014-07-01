@@ -1,0 +1,275 @@
+<html>
+
+<head>
+
+<title>xdi-js</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<link rel="shortcut icon" href="favicon.ico" />
+
+<link rel="stylesheet" href="css/style.css" TYPE="text/css" MEDIA="screen" />
+<link rel="stylesheet" href="css/jquery-ui-1.10.3.custom.min.css" />
+
+<script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.10.3.custom.min.js"></script>
+<script type="text/javascript" src="js/lodash.compat.min.js"></script>
+<script type="text/javascript" src="xdi.js"></script>
+
+<script type="text/javascript">
+
+function syntax() {
+
+	alert(xdi.util.getNodeType($("#syntaxinput").val()));
+
+	var statement = xdi.parser.parseStatement($("#syntaxinput").val());
+
+	var type = null;
+	if (statement.isContextNodeStatement()) type = "context node";
+	if (statement.isRelationStatement()) type = "relation";
+	if (statement.isLiteralStatement()) type = "literal";
+
+	$("#syntaxresult").html("");
+	$("#syntaxresult").append("<p class='segment'>STATEMENT TYPE:&nbsp;" + _.escape(type) + "</p>");
+	$("#syntaxresult").append("<p class='segment'>SUBJECT:&nbsp;" + _.escape(statement.subject().string()) + "</p>");
+	for (var subsegment in statement.subject().subsegments()) $("#syntaxresult").append("<p class='subsegment'>" + _.escape(statement.subject().subsegments()[subsegment].string()) + "</p>");
+	$("#syntaxresult").append("<p class='segment'>PREDICATE:&nbsp;" + _.escape(statement.predicate.string) + "</p>");
+	for (var subsegment in statement.predicate().subsegments()) $("#syntaxresult").append("<p class='subsegment'>" + _.escape(statement.predicate().subsegments()[subsegment].string()) + "</p>");
+	$("#syntaxresult").append("<p class='segment'>OBJECT:&nbsp;" + (statement.object() instanceof xdi.Segment || statement.object() instanceof xdi.Subsegment ? _.escape(statement.object().string()) : _.escape(JSON.stringify(statement.object()))) + "</p>");
+	if (statement.object() instanceof xdi.Segment) for (var subsegment in statement.object().subsegments()) $("#syntaxresult").append("<p class='subsegment'>" + _.escape(statement.object().subsegments()[subsegment].string()) + "</p>");
+}
+
+function syntaxclear() {
+
+	$("#syntaxresult").html("");
+}
+
+function graph() {
+
+	eval($("#graphinput").val());
+	
+	$("#graphresult1").html("");
+	$("#graphresult1").append("<p class='segment'>STATEMENTS: " + g.statements().length + "</p>");
+	$("#graphresult1").append(g.serializeXDIDISPLAY());
+	
+	$("#graphresult2").html("");
+	$("#graphresult2").append(g.serializeXDIJSON(true));
+}
+
+function graphclear() {
+
+	$("#graphresult1").html("");
+	$("#graphresult2").html("");
+}
+
+function convert1() {
+
+	var g = xdi.graph();
+	
+	g.deserializeXDIDISPLAY($("#convertinput").val());
+	
+	$("#convertresult").html("");
+	$("#convertresult").append("<p class='segment'>STATEMENTS: " + g.statements().length + "</p>");
+	$("#convertresult").append(g.serializeXDIJSON(true));
+}
+
+function convert2() {
+
+	var g = xdi.graph();
+	
+	g.deserializeXDIJSON($("#convertinput").val());
+	
+	$("#convertresult").html("");
+	$("#convertresult").append("<p class='segment'>STATEMENTS: " + g.statements().length + "</p>");
+	$("#convertresult").append(g.serializeXDIDISPLAY());
+}
+
+function convertclear() {
+
+	$("#convertresult").html("");
+}
+
+function client() {
+
+	var endpoint = $("#clientinput").val();
+	var toAddress = $("#clientinput2").val();
+	var sender = $("#clientinput3").val();
+	var linkContract = $("#clientinput4").val();
+	var operation = $('input[name=clientinput5]:radio:checked').val();
+	var target = $("#clientinput6").val();
+
+	var message = xdi.message(sender);
+	message.toAddress(toAddress);
+	message.linkContract(linkContract);
+	message.operation(operation, target);
+
+	message.send(
+
+		endpoint,
+		function(response) {
+			var statements = response.statements();
+			$("#clientresult").html("");
+			$("#clientresult").append("<p class='segment'>STATEMENTS: " + statements.length + "</p>");
+			for (var i in statements) $("#clientresult").append(_.escape(statements[i].string()) + "<br>");
+		},
+		function(errorText) {
+			alert(errorText);
+		}
+	);
+}
+
+function clientclear() {
+
+	$("#clientresult").html("");
+}
+
+function discover1() {
+
+	var xri = $("#discoveryinput").val();
+	var serviceTypes = $("#discoveryinput2").val();
+
+	xdi.discovery(
+
+		xri,
+		function(discovery) {
+			$("#discoveryresult").html("");
+			$("#discoveryresult").append("<p class='segment'>CLOUD NUMBER: " + discovery.cloudNumber() + "</p>");
+			$("#discoveryresult").append("<p class='segment'>XDI ENDPOINT: " + discovery.xdiEndpoint() + "</p>");
+			for (var i in discovery.services()) {
+				$("#discoveryresult").append("<p class='segment'>SERVICE: " + i + " --> " + discovery.services()[i] + "</p>");
+			}
+		},
+		function(errorText) {
+			alert(errorText);
+		},
+		serviceTypes ? serviceTypes.split(" ") : [],
+		"https://xdidiscoveryservice.xdi.net/"
+	);
+}
+
+function discover2() {
+
+	var xri = $("#discoveryinput").val();
+	var serviceTypes = $("#discoveryinput2").val();
+
+	xdi.discovery(
+
+		xri,
+		function(discovery) {
+			$("#discoveryresult").html("");
+			$("#discoveryresult").append("<p class='segment'>CLOUD NUMBER: " + discovery.cloudNumber() + "</p>");
+			$("#discoveryresult").append("<p class='segment'>XDI ENDPOINT: " + discovery.xdiEndpoint() + "</p>");
+			for (var i in discovery.services()) {
+				$("#discoveryresult").append("<p class='segment'>SERVICE: " + i + " --> " + discovery.services()[i] + "</p>");
+			}
+		},
+		function(errorText) {
+			alert(errorText);
+		},
+		serviceTypes ? serviceTypes.split(" ") : [],
+		"https://xdidiscoveryserviceote.xdi.net/"
+	);
+}
+
+function discoveryclear() {
+
+	$("#discoveryresult").html("");
+}
+
+$(function() {
+
+	$( "#tabs" ).tabs();
+});
+
+</script>
+
+</head>
+
+<body>
+
+<div id="tabs">
+
+<img src="images/projectdanube_logo.png" style="float: right; margin: 10px;">
+
+<ul>
+<li><a href="#tabs-1"><img src="images/logo64.png"></a></li>
+<li><a href="#tabs-2">Syntax</a></li>
+<li><a href="#tabs-3">Graph</a></li>
+<li><a href="#tabs-4">Convert</a></li>
+<li><a href="#tabs-5">Client</a></li>
+<li><a href="#tabs-6">Discovery</a></li>
+</ul>
+
+<div id="tabs-1">
+<p>This is an XDI client library for JavaScript, intended to be used by browser-based applications to communicate with XDI servers. See here for more information:</p>
+<p><a href="http://github.com/projectdanube/xdi-js">http://github.com/projectdanube/xdi-js</a></p>
+</div>
+
+<div id="tabs-2">
+<input type="text" id="syntaxinput" size="50" value='[=]!1111[#address]!1<#street>&/&/"MyStreet123"'>
+<button onclick="syntax();">Syntax</button>
+<button onclick="syntaxclear();">Clear</button>
+<div class="result" id="syntaxresult"></div>
+</div>
+
+<div id="tabs-3">
+<textarea id="graphinput" cols="120" rows="8">
+var g = xdi.graph();
+g.root().context("=markus", true).context("<#email>", true).context("&", true).literal("markus.sabadello@gmail.com");
+g.root().context("=markus", true).relation("#friend", "=joe", true);
+g.root().context("=markus", true).relation("#friend", "=drummond", true);
+g.root().context("=markus", true).context("<#first>", true).context("<#name>", true).context("&", true).literal("Markus");
+g.statement("=markus<#last><#name>&/&/\"Sabadello\"");
+g.statement("=x/#y/(=a/#b/=c)");
+</textarea>
+<button onclick="graph();">Graph</button>
+<button onclick="graphclear();">Clear</button>
+<div class="result" id="graphresult1"></div>
+<div class="result" id="graphresult2"></div>
+</div>
+
+<div id="tabs-4">
+<textarea id="convertinput" cols="120" rows="8">
+=x/#y/(=a/#b/=c)
+=markus/#friend/=drummond
+=markus/#friend/=joe
+=markus<#email>&/&/"markus.sabadello@gmail.com"
+=markus<#first><#name>&/&/"Markus"
+=markus<#last><#name>&/&/"Sabadello"
+</textarea>
+<button onclick="convert1();">XDI DISPLAY -> XDI JSON</button>
+<button onclick="convert2();">XDI JSON -> XDI DISPLAY</button>
+<button onclick="convertclear();">Clear</button>
+<div class="result" id="convertresult"></div>
+</div>
+
+<div id="tabs-5">
+<p><input type="text" id="clientinput" size="50" value='http://xdi2.projectdanube.org/xdi/=alice'>&nbsp;xdi endpoint</p>
+<p><input type="text" id="clientinput2" size="50" value='([=]!:uuid:1111)'>&nbsp;recipient peer root</p>
+<p><input type="text" id="clientinput3" size="50" value='$anon'>&nbsp;sender</p>
+<p><input type="text" id="clientinput4" size="50" value='([=]!:uuid:1111/$public)$do'>&nbsp;link contract</p>
+<p>
+<input type="radio" name="clientinput5" value="$get" checked>&nbsp;$get
+<input type="radio" name="clientinput5" value="$set">&nbsp;$set
+<input type="radio" name="clientinput5" value="$del">&nbsp;$del
+</p>
+<p><input type="text" id="clientinput6" size="50" value='[=]!:uuid:1111$msg$sig$keypair<$public><$key>'>&nbsp;target address or statement</p>
+<button onclick="client();">Send</button>
+<button onclick="clientclear();">Clear</button>
+<div class="result" id="clientresult"></div>
+</div>
+
+<div id="tabs-6">
+<p><input type="text" id="discoveryinput" size="50" value='=alice'>&nbsp;cloud name / cloud number</p>
+<p><input type="text" id="discoveryinput2" size="50" value='<$https><$connect><$xdi>'>&nbsp;services</p>
+<button onclick="discover1();">From PROD</button>
+<button onclick="discover2();">From OTE</button>
+<button onclick="discoveryclear();">Clear</button>
+<div class="result" id="discoveryresult"></div>
+</div>
+
+</div>
+
+</body>
+
+</html>
